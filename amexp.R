@@ -3,6 +3,7 @@ library(nnet)
 library(foreign)
 library(reshape2)
 library(caret)
+library(plyr)
 
 Traindata <- read.csv("Training_Dataset.csv")
 dict_data <- read.xls("Data_Dictionary.xlsx")
@@ -29,6 +30,12 @@ ShareOdy[is.na(ShareOdy)] <- mean(ShareOdy,na.rm=TRUE)
 ShareCos <- as.numeric(x[[11]])
 ShareCos[is.na(ShareCos)] <- mean(ShareCos,na.rm=TRUE)
 
+x$mvar_12 <- as.character(x$mvar_12)
+x$mvar_12[x$mvar_12 == "Factory Mager"] <- "Factory Manager"
+x$mvar_12[x$mvar_12 == "Senior Magement"] <- "Senior Management"
+x$mvar_12[x$mvar_12 == "Middle Magement"] <- "Middle Management"
+x$mvar_12 <- as.factor(x$mvar_12)
+
 Occup <- as.factor(x[[12]])
 RegCode <- as.factor(x[[13]])
 RegCode <- addNA(RegCode)
@@ -41,6 +48,11 @@ ResidingYears <- as.numeric(x[[19]])
 PerVoted <- as.numeric(x[[20]])
 PartiesVoted <- as.numeric(x[[21]])
 EducBack <- as.factor(x[[22]])
+
+x$mvar_22 <- as.character(x$mvar_22)
+x$mvar_22[x$mvar_22 == "professiol"] <- "professional"
+x$mvar_22 <- as.factor(x$mvar_22)
+
 Rally <- as.numeric(x[[27]])
 Rally[is.na(Rally)] <- mean(Rally, na.rm=TRUE)
 income <- as.numeric(x[[30]])
@@ -48,32 +60,90 @@ income[is.na(income)] <- mean(income,na.rm=TRUE)
 
 
 train_data = data.frame(y,partyVoted,DonaCent,DonaEbo,DonaTok,DonaOdy,DonaCos,
-                        ShareCent,ShareEbo,ShareTok,ShareOdy,ShareCos)
+                        ShareCent,ShareEbo,ShareTok,ShareOdy,ShareCos,
+                        Occup,RegCode,HouseHold,ageBucket,married,HomeOwn,PolitAffi,
+                        ResidingYears,PerVoted,PartiesVoted,EducBack,Rally,income)
 
 train_data$base <- relevel(train_data$y, ref = "CENTAUR")
 
-fit <- multinom(base~partyVoted+Centaur+Ebony+Tokugawa+Odyssey+Cosmos, data = train_data)
+#fit <- multinom(base ~ partyVoted+DonaCent+DonaEbo+DonaTok+DonaOdy+DonaCos+
+#                ShareCent+ShareEbo+ShareTok+ShareOdy+ShareCos+
+#                Occup+RegCode+HouseHold+ageBucket+married+HomeOwn+PolitAffi+
+#                ResidingYears+PerVoted+PartiesVoted+EducBack+Rally+income, data = train_data)
 
-z <- summary(fit)$coefficients/summary(fit)$standard.errors
+
+fit <- multinom(base ~ partyVoted+
+                        Occup+RegCode+HouseHold+ageBucket+married+HomeOwn+PolitAffi+
+                        ResidingYears+PerVoted+PartiesVoted+EducBack+Rally, data = train_data)
+
+
+#z <- summary(fit)$coefficients/summary(fit)$standard.errors
 # two tailed z test
-p <- (1-pnorm(abs(z),0,1))*2
+#p <- (1-pnorm(abs(z),0,1))*2
 
 # prediction 
 x_pred <- leader_data[2:31]
-partyVoted <- x_pred[[1]]                    # party voted for in last election
-Centaur <- as.numeric(x_pred[[2]])        # donation to Centaur
-Ebony <- as.numeric(x_pred[[3]])        # donation to Ebony
-Tokugawa <- as.numeric(x_pred[[4]])        # donation to Tokugawa
-Odyssey <- as.numeric(x_pred[[5]])        # donation to Odyssey
-Cosmos <- as.numeric(x_pred[[6]])        # donation to Cosmos
 
-data = data.frame(partyVoted,Centaur,Ebony,Tokugawa,Odyssey,Cosmos)
+partyVoted <- x_pred[[1]]                    # party voted for in last election
+DonaCent <- as.numeric(x_pred[[2]])        # donation to Centaur
+DonaEbo <- as.numeric(x_pred[[3]])        # donation to Ebony
+DonaTok <- as.numeric(x_pred[[4]])        # donation to Tokugawa
+DonaOdy <- as.numeric(x_pred[[5]])        # donation to Odyssey
+DonaCos <- as.numeric(x_pred[[6]])        # donation to Cosmos
+
+ShareCent <- as.numeric(x_pred[[7]])
+ShareCent[is.na(ShareCent)] <- mean(ShareCent,na.rm=TRUE)
+ShareEbo <- as.numeric(x_pred[[8]])
+ShareEbo[is.na(ShareEbo)] <- mean(ShareEbo,na.rm=TRUE)
+ShareTok <- as.numeric(x_pred[[9]])
+ShareTok[is.na(ShareTok)] <- mean(ShareTok,na.rm=TRUE)
+ShareOdy <- as.numeric(x_pred[[10]])
+ShareOdy[is.na(ShareOdy)] <- mean(ShareOdy,na.rm=TRUE)
+ShareCos <- as.numeric(x_pred[[11]])
+ShareCos[is.na(ShareCos)] <- mean(ShareCos,na.rm=TRUE)
+
+Occup <- as.factor(x_pred[[12]])
+RegCode <- as.factor(x_pred[[13]])
+RegCode <- addNA(RegCode)
+HouseHold <- as.numeric(x_pred[[14]])
+ageBucket <- as.factor(x_pred[[15]])
+married <- as.factor(x_pred[[16]])
+HomeOwn <- as.factor(x_pred[[17]])
+PolitAffi <- as.numeric(x_pred[[18]])
+ResidingYears <- as.numeric(x_pred[[19]])
+PerVoted <- as.numeric(x_pred[[20]])
+PartiesVoted <- as.numeric(x_pred[[21]])
+EducBack <- as.factor(x_pred[[22]])
+Rally <- as.numeric(x_pred[[27]])
+Rally[is.na(Rally)] <- mean(Rally, na.rm=TRUE)
+income <- as.numeric(x_pred[[30]])
+income[is.na(income)] <- mean(income,na.rm=TRUE)
+
+
+
+#data = data.frame(partyVoted,DonaCent,DonaEbo,DonaTok,
+#                  DonaOdy,DonaCos,
+#                        ShareCent,ShareEbo,ShareTok,ShareOdy,
+#                  ShareCos,
+#                        Occup,RegCode,HouseHold,ageBucket,
+#                  married,HomeOwn,PolitAffi,
+#                        ResidingYears,PerVoted,PartiesVoted,
+#                  EducBack,Rally,income)
+
+
+data = data.frame(partyVoted,
+                  Occup,RegCode,HouseHold,ageBucket,
+                  married,HomeOwn,PolitAffi,
+                  ResidingYears,PerVoted,PartiesVoted,
+                  EducBack,Rally)
+
 
 prediction <- predict(fit,newdata = data,"probs")
+
 prediction <- as.data.frame(prediction)
 
 # removing odyssesy from response only for final dataset
 #prediction <- prediction[c("CENTAUR","COSMOS","EBONY","TOKUGAWA")]
 
 prediction$FinalVote <- colnames(prediction)[apply(prediction,1,which.max)]
-write.table(prediction,file="final.csv",sep=",")
+write.table(prediction,file="dude5.csv",sep=",")
