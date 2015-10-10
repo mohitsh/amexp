@@ -86,11 +86,10 @@ income <- as.numeric(x[[30]])
 income[is.na(income)] <- mean(income,na.rm=TRUE)
 
 
-train_data = data.frame(y,partyVoted,DonaCent,DonaTok,DonaOdy,DonaCos,
+train_data = data.frame(y,partyVoted,DonaCent,DonaCos,
                         ShareCent,ShareEbo,ShareTok,ShareOdy,ShareCos,
-                        Occup,
-                        RallyCent,RallyTok,RallyOdy,Rally,RallyCos,income
-)
+                        RallyCent,RallyTok,RallyOdy,Rally,RallyCos
+                        )
 
 # removing regional code for time being (more than 53 factor issue)
 trainVar <- setdiff(colnames(train_data),list('y'))
@@ -98,7 +97,7 @@ trainVar <- setdiff(colnames(train_data),list('y'))
 set.seed(791470)
 fmodel <- randomForest(x = train_data[,trainVar],
                        y = train_data$y,
-                       ntree = 150,
+                       ntree = 170,
                        nodesize = 7,
                        importance = T)
 
@@ -167,10 +166,9 @@ income <- as.numeric(x_pred[[30]])
 income[is.na(income)] <- mean(income,na.rm=TRUE)
 
 
-test_data = data.frame(y,partyVoted,DonaCent,DonaTok,DonaOdy,DonaCos,
+test_data = data.frame(y,partyVoted,DonaCent,DonaCos,
                        ShareCent,ShareEbo,ShareTok,ShareOdy,ShareCos,
-                       Occup,
-                       RallyCent,RallyTok,RallyOdy,Rally,RallyCos,income)
+                       RallyCent,RallyTok,RallyOdy,Rally,RallyCos)
 
 # removing regional code for time being (more than 53 factor issue)
 testVar <- setdiff(colnames(test_data),list('y'))
@@ -179,4 +177,4 @@ testVar <- setdiff(colnames(test_data),list('y'))
 prediction <- predict(fmodel,newdata = test_data[,testVar])
 
 #prediction$FinalVote <- colnames(prediction)[apply(prediction,1,which.max)]
-write.table(prediction,file="dude17.csv",sep=",")
+write.table(prediction,file="dude18.csv",sep=",")

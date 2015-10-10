@@ -98,7 +98,7 @@ trainVar <- setdiff(colnames(train_data),list('y'))
 set.seed(791470)
 fmodel <- randomForest(x = train_data[,trainVar],
                        y = train_data$y,
-                       ntree = 150,
+                       ntree = 170,
                        nodesize = 7,
                        importance = T)
 
