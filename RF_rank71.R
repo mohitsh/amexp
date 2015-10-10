@@ -86,13 +86,12 @@ income[is.na(income)] <- mean(income,na.rm=TRUE)
 
 train_data = data.frame(y,partyVoted,DonaCent,DonaEbo,DonaTok,DonaOdy,DonaCos,
                         ShareCent,ShareEbo,ShareTok,ShareOdy,ShareCos,
-                        Occup,RegCode,HouseHold,ageBucket,married,HomeOwn,PolitAffi,
-                        ResidingYears,PerVoted,PartiesVoted,EducBack,
+                        Occup,
                         RallyCent,RallyEbo,RallyTok,RallyOdy,Rally,RallyCos,income
                         )
 
 # removing regional code for time being (more than 53 factor issue)
-trainVar <- setdiff(colnames(train_data),list('y','RegCode'))
+trainVar <- setdiff(colnames(train_data),list('y'))
 
 set.seed(11435)
 fmodel <- randomForest(x = train_data[,trainVar],
@@ -168,8 +167,7 @@ income[is.na(income)] <- mean(income,na.rm=TRUE)
 
 test_data = data.frame(y,partyVoted,DonaCent,DonaEbo,DonaTok,DonaOdy,DonaCos,
                        ShareCent,ShareEbo,ShareTok,ShareOdy,ShareCos,
-                       Occup,RegCode,HouseHold,ageBucket,married,HomeOwn,PolitAffi,
-                       ResidingYears,PerVoted,PartiesVoted,EducBack,
+                       Occup,
                        RallyCent,RallyEbo,RallyTok,RallyOdy,Rally,RallyCos,income
                         )
 
@@ -180,6 +178,6 @@ testVar <- setdiff(colnames(test_data),list('y'))
 prediction <- predict(fmodel,newdata = test_data[,testVar])
 
 #prediction$FinalVote <- colnames(prediction)[apply(prediction,1,which.max)]
-write.table(prediction,file="dude9.csv",sep=",")
+write.table(prediction,file="dude10.csv",sep=",")
 
 

@@ -68,36 +68,37 @@ EducBack <- as.factor(x[[22]])
 x$mvar_22 <- as.character(x$mvar_22)
 x$mvar_22[x$mvar_22 == "professiol"] <- "professional"
 x$mvar_22 <- as.factor(x$mvar_22)
+
 RallyCent <- as.numeric(x[[23]])
-RallyCent[is.na(RallyCent)] <- mean(RallyCent,na.rm=TRUE)
+RallyCent[is.na(RallyCent)] <- 0
 RallyEbo <- as.numeric(x[[24]])
-RallyEbo[is.na(RallyEbo)] <- mean(RallyEbo,na.rm=TRUE)
+RallyEbo[is.na(RallyEbo)] <- 0
 RallyTok <- as.numeric(x[[25]])
-RallyTok[is.na(RallyTok)] <- mean(RallyTok,na.rm=TRUE)
+RallyTok[is.na(RallyTok)] <- 0
 RallyOdy <- as.numeric(x[[26]])
-RallyOdy[is.na(RallyOdy)] <- mean(RallyOdy,na.rm=TRUE)
+RallyOdy[is.na(RallyOdy)] <- 0
 Rally <- as.numeric(x[[27]])
 RallyCos <- as.numeric(x[[28]])
-RallyCos[is.na(RallyCos)] <- mean(RallyCos,na.rm=TRUE)
-Rally[is.na(Rally)] <- mean(Rally, na.rm=TRUE)
+RallyCos[is.na(RallyCos)] <- 0
+Rally[is.na(Rally)] <- 0
+
 income <- as.numeric(x[[30]])
 income[is.na(income)] <- mean(income,na.rm=TRUE)
 
 
 train_data = data.frame(y,partyVoted,DonaCent,DonaEbo,DonaTok,DonaOdy,DonaCos,
                         ShareCent,ShareEbo,ShareTok,ShareOdy,ShareCos,
-                        Occup,RegCode,HouseHold,ageBucket,married,HomeOwn,PolitAffi,
-                        ResidingYears,PerVoted,PartiesVoted,EducBack,
+                        Occup,
                         RallyCent,RallyEbo,RallyTok,RallyOdy,Rally,RallyCos,income
-                        )
+)
 
 # removing regional code for time being (more than 53 factor issue)
-trainVar <- setdiff(colnames(train_data),list('y','RegCode'))
+trainVar <- setdiff(colnames(train_data),list('y'))
 
-set.seed(11435)
+set.seed(791470)
 fmodel <- randomForest(x = train_data[,trainVar],
                        y = train_data$y,
-                       ntree = 100,
+                       ntree = 120,
                        nodesize = 7,
                        importance = T)
 
@@ -148,19 +149,19 @@ PartiesVoted <- as.numeric(x_pred[[21]])
 EducBack <- as.factor(x_pred[[22]])
 
 RallyCent <- as.numeric(x_pred[[23]])
-RallyCent[is.na(RallyCent)] <- mean(RallyCent,na.rm=TRUE)
+RallyCent[is.na(RallyCent)] <- 0
 RallyEbo <- as.numeric(x_pred[[24]])
-RallyEbo[is.na(RallyEbo)] <- mean(RallyEbo,na.rm=TRUE)
+RallyEbo[is.na(RallyEbo)] <- 0
 RallyTok <- as.numeric(x_pred[[25]])
-RallyTok[is.na(RallyTok)] <- mean(RallyTok,na.rm=TRUE)
+RallyTok[is.na(RallyTok)] <- 0
 RallyOdy <- as.numeric(x_pred[[26]])
-RallyOdy[is.na(RallyOdy)] <- mean(RallyOdy,na.rm=TRUE)
+RallyOdy[is.na(RallyOdy)] <- 0
 
 
 Rally <- as.numeric(x_pred[[27]])
-Rally[is.na(Rally)] <- mean(Rally, na.rm=TRUE)
+Rally[is.na(Rally)] <- 0
 RallyCos <- as.numeric(x_pred[[28]])
-RallyCos[is.na(RallyCos)] <- mean(RallyCos,na.rm=TRUE)
+RallyCos[is.na(RallyCos)] <- 0
 
 income <- as.numeric(x_pred[[30]])
 income[is.na(income)] <- mean(income,na.rm=TRUE)
@@ -168,10 +169,8 @@ income[is.na(income)] <- mean(income,na.rm=TRUE)
 
 test_data = data.frame(y,partyVoted,DonaCent,DonaEbo,DonaTok,DonaOdy,DonaCos,
                        ShareCent,ShareEbo,ShareTok,ShareOdy,ShareCos,
-                       Occup,RegCode,HouseHold,ageBucket,married,HomeOwn,PolitAffi,
-                       ResidingYears,PerVoted,PartiesVoted,EducBack,
-                       RallyCent,RallyEbo,RallyTok,RallyOdy,Rally,RallyCos,income
-                        )
+                       Occup,
+                       RallyCent,RallyEbo,RallyTok,RallyOdy,Rally,RallyCos,income)
 
 # removing regional code for time being (more than 53 factor issue)
 testVar <- setdiff(colnames(test_data),list('y'))
@@ -180,6 +179,4 @@ testVar <- setdiff(colnames(test_data),list('y'))
 prediction <- predict(fmodel,newdata = test_data[,testVar])
 
 #prediction$FinalVote <- colnames(prediction)[apply(prediction,1,which.max)]
-write.table(prediction,file="dude9.csv",sep=",")
-
-
+write.table(prediction,file="dude14.csv",sep=",")
