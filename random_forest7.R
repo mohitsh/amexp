@@ -7,10 +7,12 @@ library(plyr)
 library(randomForest)
 library(reshape)
 library(forecast)
+library(gbm)
 
 Traindata <- read.csv("Training_Dataset.csv")
 dict_data <- read.xls("Data_Dictionary.xlsx")
 leader_data <- read.csv("Leaderboard_Dataset.csv")
+final_data <- read.csv("Final_Dataset.csv")
 y <- Traindata[[2]]
 x <- Traindata[3:32]
 
@@ -86,23 +88,32 @@ income <- as.numeric(x[[30]])
 income[is.na(income)] <- mean(income,na.rm=TRUE)
 
 
-train_data = data.frame(y,partyVoted,DonaCent,DonaCos,
-                        ShareCent,ShareEbo,ShareTok,ShareOdy,ShareCos,
-                        RallyCent,RallyTok,RallyOdy,Rally,RallyCos
+train_data = data.frame(y,partyVoted,DonaCent,DonaCos,DonaTok,
+                        ShareCent,ShareEbo,ShareTok,ShareOdy,ShareCos,Occup,
+                        RallyCent,RallyTok,RallyOdy,Rally,RallyCos,income
                         )
+
+#train_data = data.frame(y,partyVoted,
+#                        RallyCent,RallyTok,RallyOdy,RallyCos
+#                        )
+
 
 # removing regional code for time being (more than 53 factor issue)
 trainVar <- setdiff(colnames(train_data),list('y'))
 
+#boost <- gbm(y~., data = train_data, distribution = "gaussian",
+#             n.trees = 5000, interaction.depth = 4)
+
+
 set.seed(791470)
 fmodel <- randomForest(x = train_data[,trainVar],
                        y = train_data$y,
-                       ntree = 1500,
+                       ntree = 1000,
                        nodesize = 7,
                        importance = T)
 
 # prediction 
-x_pred <- leader_data[2:31]
+x_pred <- final_data[2:31]
 
 partyVoted <- x_pred[[1]]                    # party voted for in last election
 DonaCent <- as.numeric(x_pred[[2]])        # donation to Centaur
@@ -166,15 +177,28 @@ income <- as.numeric(x_pred[[30]])
 income[is.na(income)] <- mean(income,na.rm=TRUE)
 
 
-test_data = data.frame(y,partyVoted,DonaCent,DonaCos,
-                       ShareCent,ShareEbo,ShareTok,ShareOdy,ShareCos,
-                       RallyCent,RallyTok,RallyOdy,Rally,RallyCos)
+test_data = data.frame(y,partyVoted,DonaCent,DonaCos,DonaTok,
+                       ShareCent,ShareEbo,ShareTok,ShareOdy,ShareCos,Occup,
+                       RallyCent,RallyTok,RallyOdy,Rally,RallyCos,income)
+
+
+#test_data = data.frame(y,partyVoted,
+#                        RallyCent,RallyTok,RallyOdy,RallyCos
+#)
+
+
+
+#boost.pred <- predict(boost,test_data
 
 # removing regional code for time being (more than 53 factor issue)
 testVar <- setdiff(colnames(test_data),list('y'))
 
 #testVar <- setdiff(colnames(data),list('RegCode'))
 prediction <- predict(fmodel,newdata = test_data[,testVar])
+prediction[prediction=="ODYSSEY"] <- "CENTAUR"
 
 #prediction$FinalVote <- colnames(prediction)[apply(prediction,1,which.max)]
-write.table(prediction,file="dude18.csv",sep=",")
+write.table(prediction,file="Jayan1.csv",sep=",")
+
+
+
