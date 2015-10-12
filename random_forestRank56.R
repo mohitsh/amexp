@@ -13,7 +13,7 @@ Traindata <- read.csv("Training_Dataset.csv")
 dict_data <- read.xls("Data_Dictionary.xlsx")
 leader_data <- read.csv("Leaderboard_Dataset.csv")
 final_data <- read.csv("Final_Dataset.csv")
-yt <- Traindata[[2]]
+y <- Traindata[[2]]
 x <- Traindata[3:32]
 
 # model fitting
@@ -88,10 +88,10 @@ income <- as.numeric(x[[30]])
 income[is.na(income)] <- mean(income,na.rm=TRUE)
 
 
-train_data = data.frame(partyVoted,DonaCent,DonaCos,DonaTok,Occup,
-                        ShareCent,ShareEbo,ShareTok,ShareOdy,ShareCos,
+train_data = data.frame(y,partyVoted,DonaCent,DonaCos,DonaTok,
+                        ShareCent,ShareEbo,ShareTok,ShareOdy,ShareCos,Occup,
                         RallyCent,RallyTok,RallyOdy,Rally,RallyCos,income
-                        )
+)
 
 #train_data = data.frame(y,partyVoted,
 #                        RallyCent,RallyTok,RallyOdy,RallyCos
@@ -106,15 +106,14 @@ trainVar <- setdiff(colnames(train_data),list('y'))
 
 
 set.seed(791470)
-fmodel <- randomForest(x = train_data,
-                       y = yt,
+fmodel <- randomForest(x = train_data[,trainVar],
+                       y = train_data$y,
                        ntree = 500,
                        nodesize = 7,
-                       mtry = 10,
                        importance = T)
 
 # prediction 
-x_pred <- leader_data[2:31]
+x_pred <- final_data[2:31]
 
 partyVoted <- x_pred[[1]]                    # party voted for in last election
 DonaCent <- as.numeric(x_pred[[2]])        # donation to Centaur
@@ -178,39 +177,53 @@ income <- as.numeric(x_pred[[30]])
 income[is.na(income)] <- mean(income,na.rm=TRUE)
 
 
-test_data = data.frame(partyVoted,DonaCent,DonaCos,DonaTok,Occup,
-                       ShareCent,ShareEbo,ShareTok,ShareOdy,ShareCos,
+test_data = data.frame(y,partyVoted,DonaCent,DonaCos,DonaTok,
+                       ShareCent,ShareEbo,ShareTok,ShareOdy,ShareCos,Occup,
                        RallyCent,RallyTok,RallyOdy,Rally,RallyCos,income)
-levels(test_data$Occup) <- levels(train_data$Occup)
+
+levels(test_data$Occup) <- levels(train_data$Occup) 
+#levels(test_data$ageBucket) <- levels(train_data$ageBucket)
+#test_data = data.frame(y,partyVoted,
+#                        RallyCent,RallyTok,RallyOdy,RallyCos
+#)
 
 
-#colnames(test_data)[1] <- "partyVoted"
-#colnames(test_data)[2] <- "DonaCent"
-#colnames(test_data)[3] <- "DonaCos"
-#colnames(test_data)[4] <- "DonaTok"
-#colnames(test_data)[5] <- "ShareCent"
-#colnames(test_data)[6] <- "ShareEbo"
-#colnames(test_data)[7] <- "ShareTok"
-#colnames(test_data)[8] <- "ShareOdy"
-#colnames(test_data)[9] <- "ShareCos"
-
-#colnames(test_data)[10] <- "RallyCent"
-#colnames(test_data)[11] <- "RallyTok"
-#colnames(test_data)[12] <- "RallyOdy"
-#colnames(test_data)[13] <- "Rally"
-#colnames(test_data)[14] <- "RallyCos"
-#colnames(test_data)[15] <- "income"
 
 #boost.pred <- predict(boost,test_data
 
 # removing regional code for time being (more than 53 factor issue)
-testVar <- setdiff(colnames(test_data),list('y'))
+#testVar <- setdiff(colnames(test_data),list('y'))
 
 #testVar <- setdiff(colnames(data),list('RegCode'))
-prediction <- predict(fmodel,newdata = test_data)
+#prediction <- predict(fmodel,newdata = test_data[,testVar])
+#prediction[prediction=="ODYSSEY"] <- "CENTAUR"
+
 #prediction$FinalVote <- colnames(prediction)[apply(prediction,1,which.max)]
-
-write.table(prediction,file="dude3.csv",sep=",")
-
+#write.table(prediction,file="dude8.csv",sep=",")
 
 
+prediction <- predict(fmodel,newdata = test_data[,testVar])
+
+prediction <- as.data.frame(prediction)
+prediction<- prediction[1:14274,] 
+prediction <- as.data.frame(prediction)
+#prediction$FinalVote <- colnames(prediction)[apply(prediction,1,which.max)]
+for (i in 1:14274){
+        if (prediction[i,] == "ODYSSEY"){
+                dalla = sample(1:4,1)
+                if (dalla == 1){
+                        prediction[i,] <- "CENTAUR"
+                }
+                else if (dalla == 2){
+                        prediction[i,] <- "COSMOS"
+                }
+                else if (dalla == 3){
+                        prediction[i,] <- "EBONY"
+                }
+                else if (dalla == 4){
+                        prediction[i,] <- "TOKUGAWA"
+                }
+        }
+}
+
+write.table(prediction,file="dude9.csv",sep=",")

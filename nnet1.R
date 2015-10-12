@@ -13,7 +13,7 @@ Traindata <- read.csv("Training_Dataset.csv")
 dict_data <- read.xls("Data_Dictionary.xlsx")
 leader_data <- read.csv("Leaderboard_Dataset.csv")
 final_data <- read.csv("Final_Dataset.csv")
-yt <- Traindata[[2]]
+y <- Traindata[[2]]
 x <- Traindata[3:32]
 
 # model fitting
@@ -88,10 +88,10 @@ income <- as.numeric(x[[30]])
 income[is.na(income)] <- mean(income,na.rm=TRUE)
 
 
-train_data = data.frame(partyVoted,DonaCent,DonaCos,DonaTok,Occup,
-                        ShareCent,ShareEbo,ShareTok,ShareOdy,ShareCos,
+train_data = data.frame(y,partyVoted,DonaCent,DonaCos,DonaTok,
+                        ShareCent,ShareEbo,ShareTok,ShareOdy,ShareCos,Occup,
                         RallyCent,RallyTok,RallyOdy,Rally,RallyCos,income
-                        )
+)
 
 #train_data = data.frame(y,partyVoted,
 #                        RallyCent,RallyTok,RallyOdy,RallyCos
@@ -104,14 +104,26 @@ trainVar <- setdiff(colnames(train_data),list('y'))
 #boost <- gbm(y~., data = train_data, distribution = "gaussian",
 #             n.trees = 5000, interaction.depth = 4)
 
+fmodel <- multinom(y~.,data=train_data)
 
-set.seed(791470)
-fmodel <- randomForest(x = train_data,
-                       y = yt,
-                       ntree = 500,
-                       nodesize = 7,
-                       mtry = 10,
-                       importance = T)
+predictMNL <- function(model,newdata){
+        if (is.element("nnet",class(model))){
+                probs <- predict(model,newdata,"probs")
+                cum.probs <- t(apply(probs,1,cumsum))
+                
+                vals <- runif(nrow(newdata))
+                
+                tmp <- cbind(cum.probs,vals)
+                
+                k <- ncol(probs)
+                
+                ids <- 1+apply(tmp,1,function(x) length(which(x[1:k]<x[k+1])))
+                #ids <- which(x[1:k]<x[k+1])
+                return (ids)
+                
+        }
+}
+
 
 # prediction 
 x_pred <- leader_data[2:31]
@@ -178,39 +190,32 @@ income <- as.numeric(x_pred[[30]])
 income[is.na(income)] <- mean(income,na.rm=TRUE)
 
 
-test_data = data.frame(partyVoted,DonaCent,DonaCos,DonaTok,Occup,
-                       ShareCent,ShareEbo,ShareTok,ShareOdy,ShareCos,
+test_data = data.frame(y,partyVoted,DonaCent,DonaCos,DonaTok,
+                       ShareCent,ShareEbo,ShareTok,ShareOdy,ShareCos,Occup,
                        RallyCent,RallyTok,RallyOdy,Rally,RallyCos,income)
-levels(test_data$Occup) <- levels(train_data$Occup)
 
 
-#colnames(test_data)[1] <- "partyVoted"
-#colnames(test_data)[2] <- "DonaCent"
-#colnames(test_data)[3] <- "DonaCos"
-#colnames(test_data)[4] <- "DonaTok"
-#colnames(test_data)[5] <- "ShareCent"
-#colnames(test_data)[6] <- "ShareEbo"
-#colnames(test_data)[7] <- "ShareTok"
-#colnames(test_data)[8] <- "ShareOdy"
-#colnames(test_data)[9] <- "ShareCos"
+#test_data = data.frame(y,partyVoted,
+#                        RallyCent,RallyTok,RallyOdy,RallyCos
+#)
 
-#colnames(test_data)[10] <- "RallyCent"
-#colnames(test_data)[11] <- "RallyTok"
-#colnames(test_data)[12] <- "RallyOdy"
-#colnames(test_data)[13] <- "Rally"
-#colnames(test_data)[14] <- "RallyCos"
-#colnames(test_data)[15] <- "income"
+
 
 #boost.pred <- predict(boost,test_data
 
 # removing regional code for time being (more than 53 factor issue)
 testVar <- setdiff(colnames(test_data),list('y'))
 
-#testVar <- setdiff(colnames(data),list('RegCode'))
-prediction <- predict(fmodel,newdata = test_data)
+
+prediction <- predict(fmodel,test_data)
+prediction <- as.data.frame(prediction)
+
+#prediction[prediction == 1] <- "CENTAUR"
+#prediction[prediction == 2] <- "COSMOS"
+#prediction[prediction == 3] <- "EBONY"
+#prediction[prediction == 4] <- "ODYSSEY"
+#prediction[prediction == 5] <- "TOKUGAWA"
+
 #prediction$FinalVote <- colnames(prediction)[apply(prediction,1,which.max)]
-
-write.table(prediction,file="dude3.csv",sep=",")
-
-
+write.table(prediction,file="nnet2.csv",sep=",")
 
